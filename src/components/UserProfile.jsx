@@ -37,8 +37,8 @@ const UserProfile = () => {
 
     try {
       const apiUrl = editMode
-        ? `/api/users/${currentUserId}`
-        : "/api/users/create";
+        ? `http://localhost:5000/api/users/${currentUserId}`
+        : "http://localhost:5000/api/users/create";
 
       const method = editMode ? axios.put : axios.post;
 

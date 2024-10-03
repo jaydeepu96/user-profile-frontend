@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
+// Create new user
 export const createUserProfile = createAsyncThunk(
   "user/createProfile",
   async (data) => {
@@ -9,14 +10,16 @@ export const createUserProfile = createAsyncThunk(
   }
 );
 
-export const fetchUserProfile = createAsyncThunk(
-  "user/fetchProfile",
-  async (userId) => {
-    const response = await axios.get(`/api/users/${userId}`);
+// Fetch all users
+export const fetchUserProfiles = createAsyncThunk(
+  "user/fetchProfiles",
+  async () => {
+    const response = await axios.get("/api/users");
     return response.data;
   }
 );
 
+// Update user profile
 export const updateUserProfile = createAsyncThunk(
   "user/updateProfile",
   async ({ userId, data }) => {
@@ -28,31 +31,41 @@ export const updateUserProfile = createAsyncThunk(
 const userSlice = createSlice({
   name: "user",
   initialState: {
-    profile: null,
+    profiles: [],
     status: "idle",
     error: null,
   },
-  reducers: {},
+  reducers: {
+    resetFormState(state) {
+      state.status = "idle";
+    },
+  },
   extraReducers: (builder) => {
     builder
-      .addCase(createUserProfile.fulfilled, (state, action) => {
-        state.profile = action.payload;
-      })
-      .addCase(fetchUserProfile.pending, (state) => {
+      .addCase(fetchUserProfiles.pending, (state) => {
         state.status = "loading";
       })
-      .addCase(fetchUserProfile.fulfilled, (state, action) => {
+      .addCase(fetchUserProfiles.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.profile = action.payload;
+        state.profiles = action.payload;
       })
-      .addCase(fetchUserProfile.rejected, (state, action) => {
+      .addCase(fetchUserProfiles.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.error.message;
       })
+      .addCase(createUserProfile.fulfilled, (state, action) => {
+        state.profiles.push(action.payload);
+      })
       .addCase(updateUserProfile.fulfilled, (state, action) => {
-        state.profile = action.payload;
+        const index = state.profiles.findIndex(
+          (profile) => profile.userID === action.payload.userID
+        );
+        if (index !== -1) {
+          state.profiles[index] = action.payload;
+        }
       });
   },
 });
 
+export const { resetFormState } = userSlice.actions;
 export default userSlice.reducer;
